@@ -30,7 +30,8 @@ public class DiscordWebhookClient implements NotificationSender {
                 .defaultHeader("Content-Type", "application/json")
                 .build();
     }
-
+    
+    @Override
     public void excuteNotification(String webhookUrl, String content) {
         DiscordWebhookRequestDto request = new DiscordWebhookRequestDto(content);
 

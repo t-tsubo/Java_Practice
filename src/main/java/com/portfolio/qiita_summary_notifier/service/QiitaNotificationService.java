@@ -19,11 +19,18 @@ public class QiitaNotificationService {
     public void execute(String tag, String webhookUrl) {
 
         List<Article> articles = articleProvider.getArticles(tag);
+        String nContents = "";
         
         for (Article article : articles) {
             String summary = summarizer.getSummaryOfArticle(article);
-            notificationSender.excuteNotification(webhookUrl, summary);
+
+            NotificationContent notificationContent = 
+                    new NotificationContent(article.getTitle(), article.getUrl(), summary);
+
+            nContents += notificationContent.toDiscordMessage();
         }
+
+        notificationSender.excuteNotification(webhookUrl, nContents);
     }
 }
 
