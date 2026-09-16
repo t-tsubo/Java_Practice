@@ -5,6 +5,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor 
+// 通知するテキストを整形するクラス
+// インスタンスを持つよりもstaticメソッドで引数に受け取るだけのほうがいいのかも
 public class NotificationContent {
     
     private String title;
