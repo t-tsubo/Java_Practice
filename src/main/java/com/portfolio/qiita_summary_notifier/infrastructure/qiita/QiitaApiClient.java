@@ -52,7 +52,7 @@ public class QiitaApiClient implements ArticleProvider{
     public List<Article> getArticles(String tag) {
         // APIをたたく時の文字列(メッセージ)
         // 今回はtagにJava、1ページに3記事を取得するという内容
-        String url = "https://qiita.com/api/v2/items?query=tag:" + tag + "&page=1&per_page=3";
+        String url = "https://qiita.com/api/v2/items?query=tag:" + tag + "&page=1&per_page=1";
         // RestClientは例外を発生させる可能性があるのでtryで囲む       
         try {
             // APIをたたき、QiitaArticleDto型の配列に格納する
@@ -80,7 +80,7 @@ public class QiitaApiClient implements ArticleProvider{
             return articleList;
 
         } catch(RestClientException e) {
-            Utility.writeUtf8Text("notes/debug_log/qiitaArticlesLog.txt", "Qiita APIエラー" + e.getMessage());
+            Utility.writeUtf8Text("logs/qiitaArticlesLog.txt", "Qiita APIエラー" + e.getMessage());
             return new ArrayList<>();
         }
         
