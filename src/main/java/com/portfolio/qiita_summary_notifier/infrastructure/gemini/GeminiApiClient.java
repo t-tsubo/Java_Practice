@@ -85,7 +85,7 @@ public class GeminiApiClient implements Summarizer{
             return response.getSummaryText();
 
         } catch (RestClientException e) {
-            Utility.writeUtf8Text("notes/debug_log/summaryLog.txt", "Gemini APIエラー: " + e.getMessage());
+            Utility.writeUtf8Text("logs/summaryLog.txt", "Gemini APIエラー: " + e.getMessage());
             return "要約失敗";
         }
     }

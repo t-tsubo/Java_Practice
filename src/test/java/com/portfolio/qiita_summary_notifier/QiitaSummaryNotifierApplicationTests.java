@@ -1,7 +1,5 @@
 package com.portfolio.qiita_summary_notifier;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.portfolio.qiita_summary_notifier.infrastructure.discord.DiscordWebhookClient;
 import com.portfolio.qiita_summary_notifier.infrastructure.gemini.GeminiApiClient;
 import com.portfolio.qiita_summary_notifier.infrastructure.qiita.QiitaApiClient;
-import com.portfolio.qiita_summary_notifier.service.Article;
+import com.portfolio.qiita_summary_notifier.service.QiitaNotificationService;
 
 @SpringBootTest
 class QiitaSummaryNotifierApplicationTests {
@@ -23,6 +21,9 @@ class QiitaSummaryNotifierApplicationTests {
 	@Autowired 
 	DiscordWebhookClient dwc;
 
+	@Autowired 
+	QiitaNotificationService qnc;
+
 	@Value("${discord.webhook.token}")
 	String dwt;
 
@@ -30,11 +31,6 @@ class QiitaSummaryNotifierApplicationTests {
 	// 現時点では開発者以外は実行できない(失敗する)ことに注意
 	@Test 
 	void canNotificationToDiscord() {
-		List<Article> articles = qac.getArticles("Java");
-		for (Article article : articles) {
-			String summary = gac.getSummaryOfArticle(article);
-			dwc.excuteNotification(dwt, summary);
-		}
-
+		qnc.execute("Java", dwt);
 	}
 }
