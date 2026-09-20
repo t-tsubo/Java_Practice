@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+    1行目はxmlのバージョンの指定
+    2行目はDTD(Document Type Definition（文書型定義）)という
+    このファイルのルールを決めるためのルールブックみたいなやつ  
+-->
+<!-- 完全修飾子名でMapperファイルと対応付ける -->
+<mapper namespace="com.portfolio.qiita_summary_notifier.repository.NotificationLogMapper">
+    <!-- 
+        id="Mapperインターフェースのメソッド名 "
+        resultType="戻り値の型の完全修飾子名"
+    -->
+    <!-- ログを記録する -->
+    <insert id="insertLog">
+        <!-- notification_logsテーブルのそれぞれのカラムを指定 -->
+        INSERT INTO notification_logs (setting_id, article_id)
+        <!-- 指定したカラムに値を入れる -->
+        <!-- このときidやnotified_atは必要ない -->
+        <!-- idはDBで自動連番(SERIAL)、notified_atはデフォルト値が現在時刻のため -->
+        VALUES
+        <!-- #{フィールド名}でJavaオブジェクトのフィールドから値を取得する -->
+        (#{settingId}, #{articleId})
+    </insert>
+    
+    <!-- 通知済みかどうかを問い合わせる -->
+    <!-- 戻り値の型(boolean)はnullを許容するかでプリミティブ型とオブジェクト型の違いがでるらしい -->
+    <select id="existsBySettingIdAndArticleId" resultType="boolean">
+        <!-- ここはまだ理解してないのであとで調べる -->
+        SELECT EXISTS (
+            SELECT 1
+            FROM notification_logs 
+            WHERE setting_id = #{settingId} AND article_id = #{articleId}
+        )
+    </select>
+</mapper>
