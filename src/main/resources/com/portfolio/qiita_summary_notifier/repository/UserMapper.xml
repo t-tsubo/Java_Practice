@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.portfolio.qiita_summary_notifier.repository.UserMapper">
+    <insert id="insertUser">
+        INSERT INTO users (
+            username,
+            password_hash,
+            updated_at
+        )
+        VALUES (
+            #{username},
+            #{passwordHash},
+            CURRENT_TIMESTAMP 
+        )
+    </insert>
+
+    <select id="selectById" resultType="com.portfolio.qiita_summary_notifier.entity.User">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+    <update id="updateUser">
+        UPDATE users SET 
+            username = #{username},
+            password_hash = #{passwordHash},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteUser">
+        DELETE FROM users WHERE id = #{id}
+    </delete>
+</mapper>

@@ -26,7 +26,9 @@
     <!-- 通知済みかどうかを問い合わせる -->
     <!-- 戻り値の型(boolean)はnullを許容するかでプリミティブ型とオブジェクト型の違いがでるらしい -->
     <select id="existsBySettingIdAndArticleId" resultType="boolean">
-        <!-- ここはまだ理解してないのであとで調べる -->
+        <!-- EXISTS()でカッコ内のクエリを処理し、1件でも結果が返ってきたらtrue, 返ってこなかったらfalseを返す -->
+        <!-- カッコ内は見つかった時点で1を返すので、それを受け取ったEXISTSはtrueを返す-->
+        <!-- その値を外のSELECTがJavaへ返すという流れ maybe -->
         SELECT EXISTS (
             SELECT 1
             FROM notification_logs 

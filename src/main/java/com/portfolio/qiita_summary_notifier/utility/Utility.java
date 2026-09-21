@@ -39,6 +39,28 @@ public class Utility {
 
     }
 
+        public static void writeUtf8Texts(String fileName, String content) {
+        try {
+            Path filePath = Paths.get(fileName);
+
+            Files.writeString(
+                filePath,                               // 入力したいファイルのパス(名前)
+                content,                                // ファイルに書き込みたい内容(文字列)
+                StandardCharsets.UTF_8,                 // 文字コードを指定
+                StandardOpenOption.CREATE,              // ファイルがなければ新規作成
+                StandardOpenOption.APPEND    // ファイルがあれば中身を消して上書き
+            );
+
+            // 成功したときにパスを出力
+            System.out.println("File output successful: " + filePath.toAbsolutePath());
+        
+        } catch (IOException e) {
+            System.out.println("File output faild: " + e.getMessage());
+        }
+
+
+    }
+
     // StandardCharsetsは文字コードを打ち間違えないように
     // 定数で管理するクラス enumではない
 
