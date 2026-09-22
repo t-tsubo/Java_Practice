@@ -33,4 +33,11 @@ class QiitaSummaryNotifierApplicationTests {
 	void canNotificationToDiscord() {
 		qnc.execute("Java", dwt);
 	}
+
+	@Test 
+	void mojibake() {
+		System.out.println("文字化け直った？");
+		System.out.println(System.getProperty("file.encoding"));
+		System.out.println(java.nio.charset.Charset.defaultCharset());	
+	}
 }
