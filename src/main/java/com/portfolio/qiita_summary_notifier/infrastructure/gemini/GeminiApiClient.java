@@ -82,6 +82,9 @@ public class GeminiApiClient implements Summarizer{
                     .retrieve()
                     .body(GeminiResponseDto.class);
             
+            // ここにリスエスト制限を回避するためのディレイを作る
+            // 例外処理も必要になる
+        
             return response.getSummaryText();
 
         } catch (RestClientException e) {

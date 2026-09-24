@@ -4,6 +4,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.portfolio.qiita_summary_notifier.entity.NotificationSetting;
+import com.portfolio.qiita_summary_notifier.repository.NotificationLogMapper;
+import com.portfolio.qiita_summary_notifier.repository.NotificationSettingMapper;
+
 import lombok.RequiredArgsConstructor;
 
 // このクラスでインフラの3つのメソッドを使って出力する
@@ -16,8 +20,23 @@ public class QiitaNotificationService {
     private final NotificationSender notificationSender;
     private final Summarizer summarizer;
 
-    public void execute(String tag, String webhookUrl) {
+    private final NotificationSettingMapper notificationSettingMapper;
+    private final NotificationLogMapper NotificationLogMapper;
 
+    // executeForSettingを複数回(DBの設定数ごとに)実行する
+    // 最終的にこのメソッドは引数を持たず、@Scheduleによって
+    // 一定時間ごとに実行されるだけになる...はず
+    // executeでselectActiveSettings()で有効な設定一覧を取得
+    // 取得したリストからNotificationSettingオブジェクトを取り出し、
+    // 一件ごとのexecuteForSettingメソッドに引数として渡す
+    // executeForSettingで引数のオブジェクトから必要な情報を取得して
+    // 通知までの一連の流れを行う
+    // 多分これでいいからこのメソッド二つの形は間違ってないはず
+    public void execute(String tag, String webhookUrl) {
+        
+        // selectActiveSettings()で有効な設定一覧を呼び出す
+        // 一覧をループで取り出し、executeForSettingに渡す
+        
         List<Article> articles = articleProvider.getArticles(tag);
         String nContents = "";
         
@@ -31,6 +50,17 @@ public class QiitaNotificationService {
         }
 
         notificationSender.excuteNotification(webhookUrl, nContents);
+    }
+
+    // 1設定に合わせた内容を通知
+    // このメソッドがexecuteで何度も呼ばれるようになる
+    private void executeForSetting(NotificationSetting setting) {
+        // 1. DB設定からキーワードを取得
+        // 2. Qiita APIから記事を取得
+        // 3. 通知済みか確認
+        // 4. 要約
+        // 5. Discordへ通知
+        // 6. 通知履歴をDBへ保存
     }
 }
 
