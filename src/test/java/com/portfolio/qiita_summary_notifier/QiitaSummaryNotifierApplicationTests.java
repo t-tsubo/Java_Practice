@@ -31,7 +31,7 @@ class QiitaSummaryNotifierApplicationTests {
 	// 現時点では開発者以外は実行できない(失敗する)ことに注意
 	@Test 
 	void canNotificationToDiscord() {
-		qnc.execute("Java", dwt);
+		qnc.execute("tag:Java OR tag:spring", dwt);
 	}
 
 	@Test 
@@ -40,4 +40,8 @@ class QiitaSummaryNotifierApplicationTests {
 		System.out.println(System.getProperty("file.encoding"));
 		System.out.println(java.nio.charset.Charset.defaultCharset());	
 	}
+
+	// DBからデータを取得して通知まで行くテスト作る
+	// mapperクラスのメソッドで有効なwebhookを追加する
+	// トランザクション管理ですぐにロールバックするようにすれば漏れることはない
 }

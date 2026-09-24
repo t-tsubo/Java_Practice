@@ -14,7 +14,6 @@ import org.springframework.web.client.RestClientException;
 import com.portfolio.qiita_summary_notifier.infrastructure.qiita.dto.QiitaArticleDto;
 import com.portfolio.qiita_summary_notifier.service.Article;
 import com.portfolio.qiita_summary_notifier.service.ArticleProvider;
-import com.portfolio.qiita_summary_notifier.utility.Utility;
 
 // 現時点では役割が決まっていない(？)ので
 // ComponentとしてDIに登録する
@@ -49,10 +48,10 @@ public class QiitaApiClient implements ArticleProvider{
     }
 
     @Override 
-    public List<Article> getArticles(String tag) {
+    public List<Article> getArticles(String query) {
         // APIをたたく時の文字列(メッセージ)
         // 今回はtagにJava、1ページに3記事を取得するという内容
-        String url = "https://qiita.com/api/v2/items?query=tag:" + tag + "&page=1&per_page=1";
+        String url = "https://qiita.com/api/v2/items?query=" + query + "&page=1&per_page=2";
         // RestClientは例外を発生させる可能性があるのでtryで囲む       
         try {
             // APIをたたき、QiitaArticleDto型の配列に格納する
@@ -80,7 +79,7 @@ public class QiitaApiClient implements ArticleProvider{
             return articleList;
 
         } catch(RestClientException e) {
-            Utility.writeUtf8Text("logs/qiitaArticlesLog.txt", "Qiita APIエラー" + e.getMessage());
+            System.out.println("QiitaAPIエラー: " + e.getMessage());
             return new ArrayList<>();
         }
         

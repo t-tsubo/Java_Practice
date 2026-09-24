@@ -1,6 +1,8 @@
 package com.portfolio.qiita_summary_notifier.service;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -32,12 +34,12 @@ public class QiitaNotificationService {
     // executeForSettingで引数のオブジェクトから必要な情報を取得して
     // 通知までの一連の流れを行う
     // 多分これでいいからこのメソッド二つの形は間違ってないはず
-    public void execute(String tag, String webhookUrl) {
+    public void execute(String query, String webhookUrl) {
         
         // selectActiveSettings()で有効な設定一覧を呼び出す
         // 一覧をループで取り出し、executeForSettingに渡す
         
-        List<Article> articles = articleProvider.getArticles(tag);
+        List<Article> articles = articleProvider.getArticles(query);
         String nContents = "";
         
         for (Article article : articles) {
@@ -55,11 +57,34 @@ public class QiitaNotificationService {
     // 1設定に合わせた内容を通知
     // このメソッドがexecuteで何度も呼ばれるようになる
     private void executeForSetting(NotificationSetting setting) {
-        // 1. DB設定からキーワードを取得
+        // 1. DB設定からキーワードを取得し整形
+        // DBから"Java,spring"というタグを取得し、カンマで区切る({"Java", "spring"})
+        // カンマ区切りの配列をListに変換(asList)
+        List<String> searchKeyWords = Arrays.asList(setting.getSearchKeywords().split(","));
+        // streamで処理を加えていく
+        // 最終的には"tag:Java OR tag:spring"となる
+        String apiQuery = searchKeyWords.stream()
+                // 空白を取り除く(空白があるタグはほぼない)
+                .map(s -> s.trim())
+                // カンマの位置がずれていて空文字がある可能性があるのでここで取り除く
+                .filter(s -> !s.isEmpty())
+                // QiitaAPIにtagで検索するときの文字列
+                .map(s -> "tag:" + s)
+                // 終端処理 
+                // collectはstreamの最後に来る ここまでくるとstreamが流れ始める
+                // 引数内(Collectors)では、" OR "を間に入れて連結している
+                // streamをつないで、最終的に変数に格納したいときはcollect
+                // 変数に保存せず、そのまま出力する(println()など)ならforEach
+                .collect(Collectors.joining(" OR "));
+
         // 2. Qiita APIから記事を取得
+        List<Article> articles = articleProvider.getArticles(apiQuery);
         // 3. 通知済みか確認
+
         // 4. 要約
+
         // 5. Discordへ通知
+
         // 6. 通知履歴をDBへ保存
     }
 }

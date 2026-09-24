@@ -11,7 +11,8 @@ public class GeminiRequestDto {
     private final String input;
 
     public GeminiRequestDto(String prompt) {
-        this.model = "gemini-3.6-flash";
+        // 無料枠の中でRPMが15, RPDが500と、実用に耐える内容だったのでこれにした
+        this.model = "gemini-3.5-flash-lite";
         this.input = prompt;
     }
 }
