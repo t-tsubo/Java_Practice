@@ -3,14 +3,12 @@ package com.portfolio.qiita_summary_notifier.repository;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.portfolio.qiita_summary_notifier.entity.NotificationLog;
-
 @Mapper 
 public interface NotificationLogMapper {
     // 通知した結果を登録するメソッド
     // インターフェースのpublicはいらないみたい？
     // 暗黙的にpublicはついている 暗黙的でも書いた方がいいものもあるので違いがわからない
-    void insertLog(NotificationLog log);
+    void insertLog(Integer settingId, String articleId);
 
     // 通知済みかを確認するためのメソッド
     boolean existsBySettingIdAndArticleId(

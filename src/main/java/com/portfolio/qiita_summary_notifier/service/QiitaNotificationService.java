@@ -1,5 +1,6 @@
 package com.portfolio.qiita_summary_notifier.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +24,7 @@ public class QiitaNotificationService {
     private final Summarizer summarizer;
 
     private final NotificationSettingMapper notificationSettingMapper;
-    private final NotificationLogMapper NotificationLogMapper;
+    private final NotificationLogMapper notificationLogMapper;
 
     // executeForSettingを複数回(DBの設定数ごとに)実行する
     // 最終的にこのメソッドは引数を持たず、@Scheduleによって
@@ -68,7 +69,7 @@ public class QiitaNotificationService {
                 .map(s -> s.trim())
                 // カンマの位置がずれていて空文字がある可能性があるのでここで取り除く
                 .filter(s -> !s.isEmpty())
-                // QiitaAPIにtagで検索するときの文字列
+                // QiitaAPIにtagで検索するときの文字列に整形
                 .map(s -> "tag:" + s)
                 // 終端処理 
                 // collectはstreamの最後に来る ここまでくるとstreamが流れ始める
@@ -79,13 +80,52 @@ public class QiitaNotificationService {
 
         // 2. Qiita APIから記事を取得
         List<Article> articles = articleProvider.getArticles(apiQuery);
-        // 3. 通知済みか確認
 
-        // 4. 要約
+        // 3. 通知済みか確認
+        // streamで書けるのかわからなかったので、forループを使った
+        List<Article> newArticles = new ArrayList<Article>() ;
+        for (Article article : articles) {
+            Integer settingId = setting.getId();
+            String articleId = article.getId();
+            if (!notificationLogMapper.existsBySettingIdAndArticleId(settingId, articleId)) {
+                newArticles.add(article);
+            }
+        }
+        // 新しい記事が見つからなかったら見つからなかったことを伝えてメソッドを終える
+        if (newArticles.isEmpty()) {
+            notificationSender.excuteNotification(setting.getWebhookUrl(), "新規記事がありませんでした");
+            return;
+        }
+
+        // 4. geminiで要約
+        // 通知するコンテンツを生成している
+        // こちらもstreamの形が思いついていない
+        String notificationContents = "";
+        for (Article article : newArticles) {
+            String summary = summarizer.getSummaryOfArticle(article);
+            NotificationContent content = 
+                new NotificationContent(article.getTitle(), article.getUrl(), summary);
+
+            notificationContents += content;
+        }
 
         // 5. Discordへ通知
+        notificationSender.excuteNotification(
+            setting.getWebhookUrl(), 
+            notificationContents);
 
         // 6. 通知履歴をDBへ保存
+        // settingIdが複数呼ばれるので先に書いたが意味がない？
+        // 通知履歴を残す目的としてはこのタイミングでログに書くべきだが、
+        // nerArticlesを二回回していることと、
+        // 本当に送れたのか確認を取っていない
+        // それなら4の段階でログに入れたほうがいい気もする
+        // 本来は通知できたか確認作業を入れるべき？
+        Integer settingId = setting.getId();
+        for (Article sendedArticle : newArticles) {
+            notificationLogMapper.insertLog(settingId, sendedArticle.getId());
+        }
+        
     }
 }
 

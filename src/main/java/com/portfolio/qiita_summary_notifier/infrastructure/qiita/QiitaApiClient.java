@@ -89,7 +89,8 @@ public class QiitaApiClient implements ArticleProvider{
         return new Article(
             dto.getTitle(),
             dto.getUrl(),
-            dto.getBody()
+            dto.getBody(),
+            dto.getId()
         );
     }
 }

@@ -18,3 +18,7 @@ VALUES
 (1, 'Java,Spring', 'AI','https://discord.com/api/webhooks/test1', 'ch1', true),
 (2, 'Python,Django', '機械学習', 'https://discord.com/api/webhooks/test2', 'ch2', false);
 
+-- notification_log(仮)
+INSERT INTO notification_log (setting_id, article_id)
+VALUES (1, 'test_article_id')
+
