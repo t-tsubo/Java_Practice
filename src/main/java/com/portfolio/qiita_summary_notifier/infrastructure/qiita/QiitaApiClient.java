@@ -3,7 +3,9 @@ package com.portfolio.qiita_summary_notifier.infrastructure.qiita;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -48,10 +50,46 @@ public class QiitaApiClient implements ArticleProvider{
     }
 
     @Override 
-    public List<Article> getArticles(String query) {
+    public List<Article> getArticles(String includeTags, String excludeTags) {
+
+        List<String> excludeKeywords = Arrays.asList(excludeTags.split(","));
+
+        // この部分は動きはするが、理想的はない
+        // UriComponentsBuilderというuri生成を助けるクラスを使って
+        // エラーなどが起きないようにuriを組み立てる
+        
+        String excludeQuery = excludeKeywords.stream()
+                .map(s -> s.trim())
+                .filter(s -> !s.isEmpty())
+                .map(s -> "-tag:" + s)
+                .collect(Collectors.joining(" "));
+        System.out.println("excludeQueryの内容: " + excludeQuery);
+
+        // 1. DB設定からキーワードを取得し整形
+        // DBから"Java,spring"というタグを取得し、カンマで区切る({"Java", "spring"})
+        // カンマ区切りの配列をListに変換(asList)
+        List<String> includeKeywords = Arrays.asList(includeTags.split(","));
+        // streamで処理を加えていく
+        // 最終的には"tag:Java OR tag:spring"となる
+        String searchQuery = includeKeywords.stream()
+                // 空白を取り除く(空白があるタグはほぼない)
+                .map(s -> s.trim())
+                // カンマの位置がずれていて空文字がある可能性があるのでここで取り除く
+                .filter(s -> !s.isEmpty())
+                // QiitaAPIにtagで検索するときの文字列に整形
+                .map(s -> "tag:" + s + " " + excludeQuery)
+                // 終端処理 
+                // collectはstreamの最後に来る ここまでくるとstreamが流れ始める
+                // 引数内(Collectors)では、" OR "を間に入れて連結している
+                // streamをつないで、最終的に変数に格納したいときはcollect
+                // 変数に保存せず、そのまま出力する(println()など)ならforEach
+                // joiningは区切り文字の指定だけでなく接頭辞と接尾辞も指定できる
+                .collect(Collectors.joining(" OR "/* , "(", ")"*/));
+        System.out.println("searchQueryの内容: " + searchQuery);
+
         // APIをたたく時の文字列(メッセージ)
         // 今回はtagにJava、1ページに3記事を取得するという内容
-        String url = "https://qiita.com/api/v2/items?query=" + query + "&page=1&per_page=2";
+        String url = "https://qiita.com/api/v2/items?query=" + searchQuery + " sort:created&page=1&per_page=1";
         // RestClientは例外を発生させる可能性があるのでtryで囲む       
         try {
             // APIをたたき、QiitaArticleDto型の配列に格納する
@@ -74,6 +112,8 @@ public class QiitaApiClient implements ArticleProvider{
                 for (QiitaArticleDto dto : dtos) {
                     articleList.add(convertToArticle(dto));
                 }
+            } else {
+                System.out.println("記事を取得できなかった");
             }
 
             return articleList;
