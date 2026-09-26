@@ -13,7 +13,6 @@ import com.portfolio.qiita_summary_notifier.infrastructure.gemini.dto.GeminiRequ
 import com.portfolio.qiita_summary_notifier.infrastructure.gemini.dto.GeminiResponseDto;
 import com.portfolio.qiita_summary_notifier.service.Article;
 import com.portfolio.qiita_summary_notifier.service.Summarizer;
-import com.portfolio.qiita_summary_notifier.utility.Utility;
 
 @Component
 public class GeminiApiClient implements Summarizer{
@@ -82,11 +81,21 @@ public class GeminiApiClient implements Summarizer{
                     .retrieve()
                     .body(GeminiResponseDto.class);
             
+            // GeminiのRPM15制限に引っ掛からないためのディレイ
+            Thread.sleep(Duration.ofSeconds(5));
+        
             return response.getSummaryText();
 
         } catch (RestClientException e) {
-            Utility.writeUtf8Text("logs/summaryLog.txt", "Gemini APIエラー: " + e.getMessage());
+            // 一記事が要約できなくても他が成功する可能性があるので処理を止めない
+            System.out.println("GeminiAPIエラー: " + e.getMessage());
             return "要約失敗";
+        } catch (InterruptedException e) {
+            // InterruptedExceptionはサーバー側で再起動したり、割り込み操作が行われたときだけ起こる
+            // 起こる頻度が少ないことと、起きるときはほかの処理も続けられないので
+            // 例外を投げてこの処理を中断する
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("API待機中にエラーが発生しました", e);
         }
     }
 

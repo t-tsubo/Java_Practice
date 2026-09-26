@@ -47,7 +47,7 @@ copilot-instructions.md
 .env.*
 !.env.example
 *.local.properties
-
+application-local.properties
 ### ログ関係 ###
 *.log
 logs/

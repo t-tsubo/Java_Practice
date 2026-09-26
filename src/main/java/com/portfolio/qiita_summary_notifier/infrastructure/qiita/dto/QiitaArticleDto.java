@@ -15,4 +15,6 @@ public class QiitaArticleDto {
     private String url;
 
     private String body;
+    // 重複管理に必要 Qiitaの記事idは文字列入り
+    private String id;
 }

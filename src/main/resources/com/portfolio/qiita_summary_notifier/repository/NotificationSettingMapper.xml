@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.portfolio.qiita_summary_notifier.repository.NotificationSettingMapper">
+    <!-- 新規登録 -->
+    <insert id="insertSetting">
+        INSERT INTO notification_settings (
+            user_id, 
+            search_keywords,
+            exclusion_keywords,
+            webhook_url,
+            webhook_name,
+            is_active,
+            updated_at
+        )
+        VALUES (
+            #{userId},
+            #{searchKeywords},
+            #{exclusionKeywords},
+            #{webhookUrl},
+            #{webhookName},
+            #{isActive},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+    <!-- 有効な通知設定を検索する -->
+    <select id="selectActiveSettings" resultType="com.portfolio.qiita_summary_notifier.entity.NotificationSetting">
+        SELECT * FROM notification_settings
+        WHERE is_active = true
+    </select>
+    <!-- ユーザーごとの設定一覧取得する -->
+    <select id="selectByUserId" resultType="com.portfolio.qiita_summary_notifier.entity.NotificationSetting">
+        SELECT * FROM notification_settings
+        WHERE user_id = #{userId}
+    </select>
+    <!-- 1件取得 -->
+    <select id="selectById" resultType="com.portfolio.qiita_summary_notifier.entity.NotificationSetting">
+        SELECT * FROM notification_settings
+        WHERE id = #{id}
+    </select>
+    <!-- 設定を更新する -->
+    <update id="updateSetting">
+        UPDATE notification_settings SET 
+            search_keywords = #{searchKeywords},
+            exclusion_keywords = #{exclusionKeywords},
+            webhook_url = #{webhookUrl},
+            webhook_name = #{webhookName},
+            is_active = #{isActive},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{id}
+    </update>
+    <!-- 設定を削除する -->
+    <delete id="deleteSetting">
+        DELETE FROM notification_settings WHERE id = #{id}
+    </delete>
+</mapper>

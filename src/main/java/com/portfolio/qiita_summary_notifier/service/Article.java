@@ -13,4 +13,6 @@ public class Article {
     private String url;
 
     private String body;
+
+    private String id;
 }
