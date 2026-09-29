@@ -15,9 +15,9 @@ public class NotificationSetting {
 
     private Integer userId;
 
-    private String searchKeywords;
+    private String includeTags;
 
-    private String exclusionKeywords;
+    private String excludeTags;
 
     private String webhookUrl;
 

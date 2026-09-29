@@ -23,8 +23,8 @@ CREATE TABLE notification_settings (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, 
     -- 妥協案で、タグをカンマ区切りで受け取る
     -- 本来は正規化しないといけないが、まずは動くことを優先する
-    search_keywords VARCHAR(255),
-    exclusion_keywords VARCHAR(255),
+    include_tags VARCHAR(255),
+    exclude_tags VARCHAR(255),
     -- まずは1設定1URL 
     -- 複数URLを設定する場合、レコードの内容を複製することになる
     webhook_url VARCHAR(255) NOT NULL,

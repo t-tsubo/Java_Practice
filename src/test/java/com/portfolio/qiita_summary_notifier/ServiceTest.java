@@ -27,8 +27,8 @@ public class ServiceTest {
         NotificationSetting testSetting = new NotificationSetting();
         // 必要なデータだけsetterで入れていく
         testSetting.setId(1);
-        testSetting.setSearchKeywords("Java, spring");
-        testSetting.setExclusionKeywords("MCP , , JavaGold");
+        testSetting.setIncludeTags("Java, spring");
+        testSetting.setExcludeTags("MCP , , JavaGold");
         testSetting.setWebhookUrl(discordWebhookToken);
 
         // settingをexecuteForSetting()に渡す

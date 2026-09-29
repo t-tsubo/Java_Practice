@@ -1,5 +1,6 @@
 package com.portfolio.qiita_summary_notifier.infrastructure.qiita;
 
+import java.net.URI;
 import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -12,23 +13,21 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.portfolio.qiita_summary_notifier.infrastructure.qiita.dto.QiitaArticleDto;
 import com.portfolio.qiita_summary_notifier.service.Article;
 import com.portfolio.qiita_summary_notifier.service.ArticleProvider;
 
-// 現時点では役割が決まっていない(？)ので
-// ComponentとしてDIに登録する
 @Component 
 public class QiitaApiClient implements ArticleProvider{
 
     private final RestClient restClient;
-
-    // @Value("プロパティ名")でapplication.propertiesの
-    // "プロパティ名"の値を取得できる
-    // コマンドライン引数やOSの環境変数、
-    // 独自に作ったファイルなど、基本的に何でも値を持ってこれる？
-    // 後者は@PropertySourceなどを使うらしい
+    /** メモ: 環境変数の取得方法
+     * @Value("プロパティ名")でapplication.propertiesの"プロパティ名"の値を取得できる
+     * コマンドライン引数やOSの環境変数、独自に作ったファイルなど基本的に何でも値を持ってこれる？
+     * 後者は@PropertySourceなどを使うらしい 
+     */
     public QiitaApiClient(@Value("${qiita.api.token}") String apiToken) {
 
         HttpClient httpClient = HttpClient.newBuilder()
@@ -38,36 +37,47 @@ public class QiitaApiClient implements ArticleProvider{
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofSeconds(60));
 
-        // インスタンス生成時にRestClientを用意する
-        // builder()で独自の設定を追加する
+        /** メモ: RestClientの使い方    
+         * インスタンス生成時にRestClientを用意する
+         * builder()で独自の設定を追加する 
+         * このオブジェクトを使ってリクエストを送るとき、必ずヘッダーに引数の文字列を追加して送る
+        */
         this.restClient = RestClient.builder()
                 .requestFactory(factory)
-                // このオブジェクトを使ってリクエストを送るとき、
-                // 必ずヘッダーに引数の文字列を追加して送る
-                // 生成されるヘッダー：Authorization Bearer トークン
-                .defaultHeader("Authorization", "Bearer " + apiToken)
+                .defaultHeader("Authorization", "Bearer " + apiToken)  // 生成されるヘッダー：Authorization Bearer トークン 
                 .build();
     }
 
     @Override 
-    public List<Article> getArticles(String includeTags, String excludeTags) {
+    public List<Article> fetchArticles(String includeTags, String excludeTags) {
 
         List<String> excludeKeywords = Arrays.asList(excludeTags.split(","));
-
-        // この部分は動きはするが、理想的はない
-        // UriComponentsBuilderというuri生成を助けるクラスを使って
-        // エラーなどが起きないようにuriを組み立てる
-        
+        /** メモ: Queryを作るstreamの流れ
+         * streamを通して除外するqueryを作っていく
+         * stream() -> 中間処理 -> 終端処理の流れ
+         * 必ず終端処理が必要
+         * collect -> 変数に代入する(オブジェクトとして残す)とき
+         * forEach -> そのまま出力する(plintlnなど)とき
+         * # 中間処理
+         * map      : trim()で空白を取り除く
+         * filter   : !isEmpty()で空文字を取り除く
+         * map      : "-tag:"と除外タグをつなげる
+         * # 終端処理
+         * collect  : Collectors.joining()で区切り文字と組み合わせる
+         */
+        // 出力例: "ポエム, , MCP" -> -tag:ポエム -tag:MCP
         String excludeQuery = excludeKeywords.stream()
-                .map(s -> s.trim())
-                .filter(s -> !s.isEmpty())
-                .map(s -> "-tag:" + s)
+                .map(s -> s.trim())                             
+                .filter(s -> !s.isEmpty())                      
+                .map(s -> "-tag:" + s)            
                 .collect(Collectors.joining(" "));
         System.out.println("excludeQueryの内容: " + excludeQuery);
 
-        // 1. DB設定からキーワードを取得し整形
-        // DBから"Java,spring"というタグを取得し、カンマで区切る({"Java", "spring"})
-        // カンマ区切りの配列をListに変換(asList)
+/*  
+    DBから"Java,spring"というタグを取得し、カンマで区切る({"Java", "spring"})
+    カンマ区切りの配列をListに変換(asList)
+ */
+
         List<String> includeKeywords = Arrays.asList(includeTags.split(","));
         // streamで処理を加えていく
         // 最終的には"tag:Java OR tag:spring"となる
@@ -87,16 +97,22 @@ public class QiitaApiClient implements ArticleProvider{
                 .collect(Collectors.joining(" OR "/* , "(", ")"*/));
         System.out.println("searchQueryの内容: " + searchQuery);
 
-        // APIをたたく時の文字列(メッセージ)
-        // 今回はtagにJava、1ページに3記事を取得するという内容
-        String url = "https://qiita.com/api/v2/items?query=" + searchQuery + " sort:created&page=1&per_page=1";
+        // uriの中身: "https://qiita.com/api/v2/items?query=" + searchQuery + " sort:created&page=1&per_page=3";
+        // uriを安全に作るためのBuilderクラス
+        URI uri = UriComponentsBuilder.fromUriString("https://qiita.com/api/v2/items")
+                .queryParam("query", searchQuery + " sort:created")
+                .queryParam("page", 1)
+                .queryParam("per_page", 3)
+                .encode()  // uriのエンコードを指定 デフォルトでUTF-8
+                .build()  // UriComponentsオブジェクトを生成
+                .toUri();  // Uriオブジェクトに変換
         // RestClientは例外を発生させる可能性があるのでtryで囲む       
         try {
             // APIをたたき、QiitaArticleDto型の配列に格納する
             // HTTPのGETリクエストを生成している(まだ送っていない)
             QiitaArticleDto[] dtos = restClient.get()
             // リクエストの送り先を指定
-                    .uri(url)
+                    .uri(uri)
             // このメソッドで初めてリクエストが送られる
             // ここで初めて例外が発生する可能性が出てくる
                     .retrieve()

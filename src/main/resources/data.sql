@@ -8,8 +8,8 @@ VALUES
 -- notification_settings(仮)
 INSERT INTO notification_settings (
     user_id, 
-    search_keywords, 
-    exclusion_keywords, 
+    include_tags, 
+    exclude_tags, 
     webhook_url, 
     webhook_name,
     is_active
@@ -19,6 +19,6 @@ VALUES
 (2, 'Python,Django', '機械学習', 'https://discord.com/api/webhooks/test2', 'ch2', false);
 
 -- notification_log(仮)
-INSERT INTO notification_log (setting_id, article_id)
+INSERT INTO notification_logs (setting_id, article_id)
 VALUES (1, 'test_article_id')
 

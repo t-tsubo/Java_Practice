@@ -58,11 +58,11 @@ public class QiitaNotificationService {
 
         // 最初にキーワードを成型するが、それはqiita側の都合
         // なのでまずは生のタグ文字列だけを渡す
-        String includeTags = setting.getSearchKeywords();
-        String excludeTags = setting.getExclusionKeywords();
+        String includeTags = setting.getIncludeTags();
+        String excludeTags = setting.getExcludeTags();
         
         // 2. Qiita APIから記事を取得
-        List<Article> articles = articleProvider.getArticles(includeTags, excludeTags);
+        List<Article> articles = articleProvider.fetchArticles(includeTags, excludeTags);
 
         articles.stream()   // デバッグコード
                 .forEach(s -> System.out.println(s.getTitle()));
