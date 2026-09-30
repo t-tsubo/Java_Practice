@@ -10,22 +10,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor 
 @AllArgsConstructor 
 public class NotificationSetting {
-
     private Integer id;
-
     private Integer userId;
-
     private String includeTags;
-
     private String excludeTags;
-
     private String webhookUrl;
-
     private String webhookName;
-
     private Boolean isActive;
-
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 }

@@ -10,7 +10,6 @@ import org.springframework.web.client.RestClientException;
 
 import com.portfolio.qiita_summary_notifier.infrastructure.discord.dto.DiscordWebhookRequestDto;
 import com.portfolio.qiita_summary_notifier.service.NotificationSender;
-import com.portfolio.qiita_summary_notifier.utility.Utility;
 
 @Component
 public class DiscordWebhookClient implements NotificationSender {
@@ -22,7 +21,6 @@ public class DiscordWebhookClient implements NotificationSender {
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
-
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
         factory.setReadTimeout(Duration.ofSeconds(5));
 
@@ -32,7 +30,7 @@ public class DiscordWebhookClient implements NotificationSender {
     }
     
     @Override
-    public void excuteNotification(String webhookUrl, String content) {
+    public void notifyNewArticles(String webhookUrl, String content) {
         DiscordWebhookRequestDto request = new DiscordWebhookRequestDto(content);
 
         try {
@@ -40,14 +38,11 @@ public class DiscordWebhookClient implements NotificationSender {
                     .uri(webhookUrl)
                     .body(request)
                     .retrieve()
-                    // 今回の通知のように、何も戻ってこないタイプのリクエストは
-                    // このメソッドをつけないといけない
-                    // エラーにはならないみたいだが送信ができていなかった(?)
+                    // 戻ってくる要素がないときにこのメソッドが必要
                     .toBodilessEntity();
 
-            Utility.writeUtf8Text("logs/notificationLog.txt", "送信成功: " + request);
         } catch (RestClientException e) {
-            Utility.writeUtf8Text("logs/notificationLog.txt", "送信失敗" + e.getMessage());
+            System.out.println("送信失敗: " + e.getMessage());
         }
     }
 }

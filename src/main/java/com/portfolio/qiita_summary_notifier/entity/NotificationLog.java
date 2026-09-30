@@ -10,12 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor 
 @AllArgsConstructor 
 public class NotificationLog {
-
     private Integer id;
-
     private Integer settingId;
-
     private String articleId; 
-
     private LocalDateTime notifiedAt;
 }

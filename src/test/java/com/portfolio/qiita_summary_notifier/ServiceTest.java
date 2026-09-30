@@ -28,7 +28,7 @@ public class ServiceTest {
         // 必要なデータだけsetterで入れていく
         testSetting.setId(1);
         testSetting.setIncludeTags("Java, spring");
-        testSetting.setExcludeTags("MCP , , JavaGold");
+        testSetting.setExcludeTags("ポエム , , MCP");
         testSetting.setWebhookUrl(discordWebhookToken);
 
         // settingをexecuteForSetting()に渡す

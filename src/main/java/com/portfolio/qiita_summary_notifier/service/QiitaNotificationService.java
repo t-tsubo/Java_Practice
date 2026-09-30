@@ -52,7 +52,6 @@ public class QiitaNotificationService {
     //     notificationSender.excuteNotification(webhookUrl, nContents);
     // }
 
-    // 1設定に合わせた内容を通知
     // このメソッドがexecuteで何度も呼ばれるようになる
     public void executeForSetting(NotificationSetting setting) {
 
@@ -60,64 +59,60 @@ public class QiitaNotificationService {
         // なのでまずは生のタグ文字列だけを渡す
         String includeTags = setting.getIncludeTags();
         String excludeTags = setting.getExcludeTags();
-        
-        // 2. Qiita APIから記事を取得
+
         List<Article> articles = articleProvider.fetchArticles(includeTags, excludeTags);
 
-        articles.stream()   // デバッグコード
-                .forEach(s -> System.out.println(s.getTitle()));
+        // デバッグコード
+        // System.out.println("fetchArticlesの確認");
+        // articles.forEach(s -> System.out.println(s.getTitle()));
         
-
-        // // 3. 通知済みか確認
-        // // streamで書けるのかわからなかったので、forループを使った
-        // List<Article> newArticles = new ArrayList<Article>() ;
-        // for (Article article : articles) {
-        //     Integer settingId = setting.getId();
-        //     String articleId = article.getId();
-        //     if (!notificationLogMapper.existsBySettingIdAndArticleId(settingId, articleId)) {
-        //         newArticles.add(article);
-        //     }
-        // }
-        // // 新しい記事が見つからなかったら見つからなかったことを伝えてメソッドを終える
-        // if (newArticles.isEmpty()) {
-        //     notificationSender.excuteNotification(setting.getWebhookUrl(), "新規記事がありませんでした");
-        //     return;
-        // }
-
-        // // 4. geminiで要約
-        // // 通知するコンテンツを生成している
-        // // 構造化出力にすると大きく変わる(別メソッドかも)ので、
-        // // これは別ブランチで作り直す
-        // String notificationContents = "";
-        // for (Article article : newArticles) {
-        //     String summary = summarizer.getSummaryOfArticle(article);
-        //     NotificationContent content = 
-        //         new NotificationContent(article.getTitle(), article.getUrl(), summary);
-
-        //     notificationContents += content;
-        // }
-
-        // // 5. Discordへ通知
-        // notificationSender.excuteNotification(
-        //     setting.getWebhookUrl(), 
-        //     notificationContents);
-
-        // // 6. 通知履歴をDBへ保存
-        // // settingIdが複数呼ばれるので先に書いたが意味がない？
-        // // 通知履歴を残す目的としてはこのタイミングでログに書くべきだが、
-        // // nerArticlesを二回回していることと、
-        // // 本当に送れたのか確認を取っていない
-        // // それなら4の段階でログに入れたほうがいい気もする
-        // // 本来は通知できたか確認作業を入れるべき？
-        // Integer settingId = setting.getId();
-        // for (Article sendedArticle : newArticles) {
-        //     notificationLogMapper.insertLog(settingId, sendedArticle.getId());
-        // }
         
+        /**メモ: stream関連
+         * このメソッドは取得した記事リストから、通知していない新着記事のみにしたい
+         * 取得したarticlesをstreamで流していく
+         * settingのidは共通なので、このタイミングで取得しておく
+         * filter:  articleを受け取って記事が通知済みでないかを確認している
+         *          exists...()メソッドの引数にarticle.getId()をすることで記事のidを取得して渡している
+         * toList:  ArrayListに変換するメソッド  Java16から実装された
+         *          イミュータブルなオブジェクトなので注意
+         *          collect(Collectors.toList())であればミュータブルなリストとして扱える
+         */
+        Integer settingId = setting.getId();
+        List<Article> latestArticles = articles.stream()
+                .filter(article -> !notificationLogMapper.existsBySettingIdAndArticleId(settingId, article.getId()))
+                .toList();
+
+        // デバッグコード
+        System.out.println("latestArticlesの確認");
+        latestArticles.forEach(a -> System.out.println(a.getTitle()));
+
+        // 新しい記事が見つからなかったら見つからなかったことを伝えてメソッドを終える
+        if (latestArticles.isEmpty()) {
+            notificationSender.notifyNewArticles(setting.getWebhookUrl(), "新規記事がありませんでした");
+            return;
+        }
+
+        /**メモ: geminiの構造化出力実装のタイミングで更新が必要
+         * geminiAPIの取得する内容によって変わる
+         * streamで実装したい
+         */
+        String notificationContents = "";
+        for (Article article : latestArticles) {
+            String summary = summarizer.fetchSummaryOfArticle(article);
+            NotificationContent content = 
+                new NotificationContent(article.getTitle(), article.getUrl(), summary);
+
+            notificationContents += content;
+        }
+
+        // Discordへ通知
+        notificationSender.notifyNewArticles(
+            setting.getWebhookUrl(), notificationContents
+        );
+
+        // 通知履歴をDBへ保存
+        for (Article sentArticle : latestArticles) {
+            notificationLogMapper.insertLog(settingId, sentArticle.getId());
+        }
     }
 }
-
-// 今のままだと三回も通知を送るし、要約内容しか届かない
-// タイトルとURLを要約内容と組み合わせたオブジェクト、
-// 組み合わせるためのメソッドなどが必要
-// geminiの返答内容もjson形式にした方が管理しやすい

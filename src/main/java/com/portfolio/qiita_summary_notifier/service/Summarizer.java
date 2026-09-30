@@ -7,5 +7,5 @@ public interface Summarizer {
     // 整形などは別のメソッドで定義する
     // このメソッドはあくまで、geminiに記事を投げて
     // 要約を取得するためにAPIをたたくだけのメソッド
-    public String getSummaryOfArticle(Article article);
+    public String fetchSummaryOfArticle(Article article);
 }
