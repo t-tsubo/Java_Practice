@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 // このクラスでインフラの3つのメソッドを使って出力する
 // ここで出力内容も整理すればいい...はず
+
 @Service
 @RequiredArgsConstructor
 public class QiitaNotificationService {
@@ -53,7 +54,7 @@ public class QiitaNotificationService {
     // }
 
     // このメソッドがexecuteで何度も呼ばれるようになる
-    public void executeForSetting(NotificationSetting setting) {
+    public void deliverArticles(NotificationSetting setting) {
 
         // 最初にキーワードを成型するが、それはqiita側の都合
         // なのでまずは生のタグ文字列だけを渡す
@@ -61,11 +62,6 @@ public class QiitaNotificationService {
         String excludeTags = setting.getExcludeTags();
 
         List<Article> articles = articleProvider.fetchArticles(includeTags, excludeTags);
-
-        // デバッグコード
-        // System.out.println("fetchArticlesの確認");
-        // articles.forEach(s -> System.out.println(s.getTitle()));
-        
         
         /**メモ: stream関連
          * このメソッドは取得した記事リストから、通知していない新着記事のみにしたい
@@ -81,10 +77,6 @@ public class QiitaNotificationService {
         List<Article> latestArticles = articles.stream()
                 .filter(article -> !notificationLogMapper.existsBySettingIdAndArticleId(settingId, article.getId()))
                 .toList();
-
-        // デバッグコード
-        System.out.println("latestArticlesの確認");
-        latestArticles.forEach(a -> System.out.println(a.getTitle()));
 
         // 新しい記事が見つからなかったら見つからなかったことを伝えてメソッドを終える
         if (latestArticles.isEmpty()) {

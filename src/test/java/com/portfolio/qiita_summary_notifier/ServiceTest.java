@@ -32,7 +32,7 @@ public class ServiceTest {
         testSetting.setWebhookUrl(discordWebhookToken);
 
         // settingをexecuteForSetting()に渡す
-        qiitaNotificationService.executeForSetting(testSetting);
+        qiitaNotificationService.deliverArticles(testSetting);
 
     }
 }

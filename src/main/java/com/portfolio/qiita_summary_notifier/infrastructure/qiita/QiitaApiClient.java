@@ -80,6 +80,8 @@ public class QiitaApiClient implements ArticleProvider{
                 }
             }
 
+            log.info("取得した記事数: {}件", articleList.size());
+
             return articleList;
 
         } catch(RestClientException e) {
