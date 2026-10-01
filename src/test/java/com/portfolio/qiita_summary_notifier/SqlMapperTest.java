@@ -21,7 +21,7 @@ class SqlMapperTest {
         List<NotificationSetting> activeSettings = mapper.selectActiveSettings();
 
         for (NotificationSetting setting : activeSettings) {
-            Utility.writeUtf8Texts("logs/SQLTest.txt", setting.getSearchKeywords());
+            Utility.writeUtf8Texts("logs/SQLTest.txt", setting.getIncludeTags());
         }
     }
 }

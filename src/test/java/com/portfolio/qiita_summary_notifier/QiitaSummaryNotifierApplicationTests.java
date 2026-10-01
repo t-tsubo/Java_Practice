@@ -29,10 +29,10 @@ class QiitaSummaryNotifierApplicationTests {
 
 	// API接続用のテストなので、本来はファイルを分けるべき
 	// 現時点では開発者以外は実行できない(失敗する)ことに注意
-	@Test 
-	void canNotificationToDiscord() {
-		qnc.execute("tag:Java OR tag:spring", dwt);
-	}
+	// @Test 
+	// void canNotificationToDiscord() {
+	// 	qnc.execute("tag:Java OR tag:spring", dwt);
+	// }
 
 	@Test 
 	void mojibake() {

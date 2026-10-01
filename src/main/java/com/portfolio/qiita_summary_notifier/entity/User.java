@@ -10,14 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor 
 @AllArgsConstructor 
 public class User {
-
     private Integer id;
-
     private String username;
-
     private String passwordHash;
-
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 }

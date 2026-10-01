@@ -6,8 +6,8 @@
     <insert id="insertSetting">
         INSERT INTO notification_settings (
             user_id, 
-            search_keywords,
-            exclusion_keywords,
+            include_tags,
+            exclude_tags,
             webhook_url,
             webhook_name,
             is_active,
@@ -15,8 +15,8 @@
         )
         VALUES (
             #{userId},
-            #{searchKeywords},
-            #{exclusionKeywords},
+            #{includeTags},
+            #{excludeTags},
             #{webhookUrl},
             #{webhookName},
             #{isActive},
@@ -41,8 +41,8 @@
     <!-- 設定を更新する -->
     <update id="updateSetting">
         UPDATE notification_settings SET 
-            search_keywords = #{searchKeywords},
-            exclusion_keywords = #{exclusionKeywords},
+            include_tags = #{includeTags},
+            exclude_tags = #{excludeTags},
             webhook_url = #{webhookUrl},
             webhook_name = #{webhookName},
             is_active = #{isActive},

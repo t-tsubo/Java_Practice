@@ -2,8 +2,8 @@ package com.portfolio.qiita_summary_notifier.infrastructure.gemini.dto;
 
 import lombok.Getter;
 
-// 今回は読み取りだけなので@Getterとした
-@Getter
+
+@Getter  // 今回は読み取りだけなので@Getterとした
 // geminiにリクエストするbody内容を管理している
 public class GeminiRequestDto {
     

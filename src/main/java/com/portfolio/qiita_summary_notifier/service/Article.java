@@ -9,10 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor 
 public class Article {
     private String title;
-
     private String url;
-
     private String body;
-
     private String id;
 }
