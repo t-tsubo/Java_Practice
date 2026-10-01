@@ -15,4 +15,5 @@ public class GeminiRequestDto {
         this.model = "gemini-3.5-flash-lite";
         this.input = prompt;
     }
+
 }
