@@ -143,7 +143,7 @@ public class QiitaApiClient implements ArticleProvider{
         URI uri = UriComponentsBuilder.fromUriString("https://qiita.com/api/v2/items")
                 .queryParam("query", searchQuery + " sort:created")
                 .queryParam("page", 1)
-                .queryParam("per_page", 3)
+                .queryParam("per_page", 1)
                 .encode()   // uriのエンコードを指定 デフォルトでUTF-8
                 .build()    // UriComponentsオブジェクトを生成
                 .toUri();   // Uriオブジェクトに変換
