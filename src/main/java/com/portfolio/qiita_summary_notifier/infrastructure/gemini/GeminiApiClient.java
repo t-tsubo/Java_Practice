@@ -3,27 +3,35 @@ package com.portfolio.qiita_summary_notifier.infrastructure.gemini;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.google.genai.Client;
+import com.google.genai.gaos.models.interactions.Content;
 import com.google.genai.gaos.models.interactions.CreateModelInteraction;
 import com.google.genai.gaos.models.interactions.CreateModelInteractionResponseFormat;
 import com.google.genai.gaos.models.interactions.Interaction;
 import com.google.genai.gaos.models.interactions.InteractionsInput;
 import com.google.genai.gaos.models.interactions.Model;
+import com.google.genai.gaos.models.interactions.ModelOutputStep;
 import com.google.genai.gaos.models.interactions.ResponseFormat;
+import com.google.genai.gaos.models.interactions.Step;
+import com.google.genai.gaos.models.interactions.TextContent;
 import com.google.genai.gaos.models.interactions.TextResponseFormat;
 import com.google.genai.gaos.models.interactions.TextResponseFormatMimeType;
 import com.google.genai.gaos.models.operations.CreateInteractionRequestBody;
 import com.google.genai.types.ClientOptions;
+import com.portfolio.qiita_summary_notifier.infrastructure.gemini.cache.SummaryCache;
 import com.portfolio.qiita_summary_notifier.service.Article;
 import com.portfolio.qiita_summary_notifier.service.Summarizer;
 
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 
+@Slf4j 
 @Component
 public class GeminiApiClient implements Summarizer{
     
@@ -142,8 +150,25 @@ public class GeminiApiClient implements Summarizer{
         // ここでリクエストを送って戻ってきたものをinteraction変数に格納
         Interaction interaction = 
             client.interactions.create(CreateInteractionRequestBody.of(params)).interaction().get();
+
+        log.debug("interactionの中身: {}", interaction);
         
-        return interaction.outputText().orElse("null");
+        // return interaction.outputText().orElse("geminiエラー");
+
+        StringBuilder output = new StringBuilder();
+
+        for (Step step : interaction.steps().orElse(List.of())) {
+            if (step instanceof ModelOutputStep modelOutputStep) {
+                for (Content content : modelOutputStep.content().orElse(List.of())) {
+                    if (content instanceof TextContent textContent) {
+                        textContent.text().ifPresent(output::append);
+                    }
+                }
+            }
+        }
+
+        SummaryCache.saveCacheOfSummaryJson(article.getId(), output.toString());
+        return output.length() > 0 ? output.toString() : "geminiAPIエラー";
     }
 
     private CreateModelInteraction createPrompt(String title, String body) {
@@ -173,7 +198,8 @@ public class GeminiApiClient implements Summarizer{
         summaryJsonSchema.put("required", Arrays.asList("summary_points", "knowledge_level"));
 
         // ここにプロンプトとtitle, bodyを与えて要約してもらう
-        String prompt = "仮";
+        String prompt = "以下の記事の3行で要約したものと、この記事の想定読者層(レベル)を出力してください。\n\n"
+                + title + "\n\n" + body;
 
         CreateModelInteractionResponseFormat format = 
             CreateModelInteractionResponseFormat.of(
