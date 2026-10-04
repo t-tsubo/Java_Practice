@@ -157,7 +157,9 @@ public class QiitaApiClient implements ArticleProvider{
             dto.getTitle(),
             dto.getUrl(),
             dto.getBody(),
-            dto.getId()
+            dto.getId(),
+            dto.getUser(),
+            dto.getTags()
         );
     }
 }

@@ -1,12 +1,9 @@
 # 期待される出力
 ```json
 {
-    "summary_points": [
-        "要約1行目",
-        "要約2行目",
-        "要約3行目"
-    ],
-    "knowledge_level": "必要な知識レベル"
+    "theme": "何について書かれた内容か",
+    "key_takeaways": "記事の重要な部分",
+    "target_audience": "対象の読者"
 }
 ```
 # 出力を定義するJsonSchema
@@ -18,27 +15,22 @@
     "type": "object",
     // このオブジェクトが持つプロパティ
     "properties": {
-        // summary_pointsというjsonオブジェクトの定義
-        "summary_points": {
-            // 中身は配列型
-            "type": "array",
-            // 配列の要素はstring型
-            "items": { "type": "string" },
-            // 配列の最小値・最大値を指定
-            "minItems": 3,
-            "maxItems": 3,
-            // この要素に入れてほしいものの説明
-            "description": "3つの要点をそれぞれ1文で簡潔に抽出してください"
-        },
-        // knowledge_levelというjsonオブジェクトの定義
-        "knowledge_level": {
+        "theme": {
             "type": "string",
-            "description": "この記事を読むために必要な知識レベルや内容を1文で簡潔に記述してください"
-        }
+            "description": "記事のテーマと使われている技術名を短い一文で。"
+        },
+        "key_takeaways": {
+            "type": "stirng",
+            "description": "記事の魅力と読むことで得られるメリットを短い一文で。"
+        },
+        "target_audience": {
+            "type": "stirng",
+            "description": "記事が想定している読者層を短い一文で。"
+        },
     },
     // required: 必須
-    // summary_pointsとknowledge_levelというプロパティは必ず用意するように要請している
-    "required": ["summary_points", "knowledge_level"]
+    // ここにある項目は必ず記入する
+    "required": ["theme", "key_takeaways", "target_audience"]
 }
 ```
 # メモ

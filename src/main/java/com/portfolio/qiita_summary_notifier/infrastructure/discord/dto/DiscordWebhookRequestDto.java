@@ -10,4 +10,7 @@ public class DiscordWebhookRequestDto {
     public DiscordWebhookRequestDto(String content) {
         this.content = content;
     }
+
+    // ここに整形用のメソッドを作る？
+    // そのメソッドをclientが呼び出して送る
 }

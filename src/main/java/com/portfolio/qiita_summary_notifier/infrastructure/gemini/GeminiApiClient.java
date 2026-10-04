@@ -24,7 +24,6 @@ import com.google.genai.gaos.models.interactions.TextResponseFormat;
 import com.google.genai.gaos.models.interactions.TextResponseFormatMimeType;
 import com.google.genai.gaos.models.operations.CreateInteractionRequestBody;
 import com.google.genai.types.ClientOptions;
-import com.portfolio.qiita_summary_notifier.infrastructure.gemini.cache.SummaryCache;
 import com.portfolio.qiita_summary_notifier.service.Article;
 import com.portfolio.qiita_summary_notifier.service.Summarizer;
 
@@ -167,39 +166,56 @@ public class GeminiApiClient implements Summarizer{
             }
         }
 
-        SummaryCache.saveCacheOfSummaryJson(article.getId(), output.toString());
+        // SummaryCache.saveCacheOfSummaryJson(article.getId(), output.toString());
         return output.length() > 0 ? output.toString() : "geminiAPIエラー";
     }
 
     private CreateModelInteraction createPrompt(String title, String body) {
 
-        // itemsの中身の定義
-        Map<String, Object> itemSchema = new HashMap<>();
-        itemSchema.put("type", "string");
-        // summary_pointsプロパティの定義
-        Map<String, Object> summaryPointsProp = new HashMap<>();
-        summaryPointsProp.put("type", "array");
-        summaryPointsProp.put("items", itemSchema);
-        summaryPointsProp.put("minItems", 3);
-        summaryPointsProp.put("maxItems", 3);
-        summaryPointsProp.put("description", "3つの要点をそれぞれ1文で簡潔に抽出してください");
-        // knowledge_levelプロパティの定義
-        Map<String, Object> knowledgeLevelProp = new HashMap<>();
-        knowledgeLevelProp.put("type", "string");
-        knowledgeLevelProp.put("description", "この記事を読むために必要な知識レベルや内容を1文で簡潔に記述してください");
-        // 以上二つのプロパティを持つプロパティ
+        // themeプロパティの定義
+        Map<String, Object> themeProp = new HashMap<>();
+        themeProp.put("type", "string");
+        themeProp.put("description", "記事のテーマと使われている技術を一文で記述してください。");
+        // key_takeawaysプロパティの定義
+        Map<String, Object> keyTakeawaysProp = new HashMap<>();
+        keyTakeawaysProp.put("type", "string");
+        keyTakeawaysProp.put("description", "記事の魅力と読むことで得られるメリットを一文で記述してください。");
+        // target_audiencePropプロパティの定義
+        Map<String, Object> targetAudienceProp = new HashMap<>();
+        targetAudienceProp.put("type", "string");
+        targetAudienceProp.put("description", "記事が想定している読者層を一文で記述してください。");
+        // propertiesプロパティの定義
         Map<String, Object> propertiesProp = new HashMap<>();
-        propertiesProp.put("summary_points", summaryPointsProp);
-        propertiesProp.put("knowledge_level", knowledgeLevelProp);
+        propertiesProp.put("theme", themeProp);
+        propertiesProp.put("key_takeaways", keyTakeawaysProp);
+        propertiesProp.put("target_audienceProp", targetAudienceProp);
         // 最終的にgeminiへ渡す全体の設計図
         Map<String, Object> summaryJsonSchema = new HashMap<>();
         summaryJsonSchema.put("type", "object");
         summaryJsonSchema.put("properties", propertiesProp);
-        summaryJsonSchema.put("required", Arrays.asList("summary_points", "knowledge_level"));
+        summaryJsonSchema.put("required", Arrays.asList("theme", "key_takeaways", "target_audienceProp"));
 
         // ここにプロンプトとtitle, bodyを与えて要約してもらう
-        String prompt = "以下の記事の3行で要約したものと、この記事の想定読者層(レベル)を出力してください。\n\n"
-                + title + "\n\n" + body;
+        String prompt = """
+                あなたは優秀な技術記事のキュレーターです。
+                与えられた記事の内容を、Discordで共有するための「3行サマリー」に要約してください。
+                出力は必ず以下の3行のみとし、それぞれの行は指定された役割を厳守してください。
+
+                【出力フォーマットと各行の役割】
+                1行目（テーマと技術）: 記事の主題と、扱っている具体的な技術名やツール名を明記する。
+                2行目（記事の魅力）: 読者がこの記事を読むことで得られる具体的なメリットや、実践的な学びの内容を記載する。
+                3行目（対象読者）: 「〇〇に悩んでいる人」「〇〇をこれから始める開発者」など、抱えている課題や具体的な状況でターゲットを表現する。
+
+                【出力例】
+                1行目: ReactとTypeScriptを用いた、コンポーネント設計と状態管理のベストプラクティスについての記事です。
+                2行目: 再利用性の高いコンポーネントの分割手法や、パフォーマンス低下を防ぐ具体的な実装パターンをコード付きで学べます。
+                3行目: プロジェクトの規模が大きくなり、Propsのバケツリレーやレンダリングの最適化に課題を感じているフロントエンドエンジニア向け。
+
+                【タイトル】
+                %s
+                【本文】
+                %s
+                """.formatted(title, body);
 
         CreateModelInteractionResponseFormat format = 
             CreateModelInteractionResponseFormat.of(
