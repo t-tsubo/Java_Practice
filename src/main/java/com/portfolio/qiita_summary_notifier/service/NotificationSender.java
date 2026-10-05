@@ -4,5 +4,5 @@ package com.portfolio.qiita_summary_notifier.service;
 public interface NotificationSender {
     // 現時点ではString summaryとしている
     // 今後は要約だけでなく、タイトルとURLも追加したクラスを渡すかもしれない
-    public void notifyNewArticles(String webhookUrl, String content);
+    public void notifyNewArticles(String webhookUrl, ArticleWithSummary unformattedData);
 }

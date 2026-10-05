@@ -30,6 +30,15 @@ public class QiitaArticleDto {
     public static class User {
         private String id;
         private String name;
+        /**memo: getterの編集
+         * lombokの@Dataアノテーションで作られるgetterは、
+         * ユーザーが同名のメソッドを書いていればユーザー側が優先される
+         * 今回はnameが存在しない可能性があるので、なければ代わりにidを使う
+         */
+        public String getName() {
+            return (this.name != null && !this.name.isBlank())
+                ? this.name : this.id;
+        }
     }
 
     @JsonIgnoreProperties (ignoreUnknown = true)

@@ -13,7 +13,7 @@ import lombok.Data;
 public class ArticleWithSummary {
     private String title;
     private List<String> tags;
-    private String user;
+    private String username;
     private String userId;
     private String theme;
     private String keyTakeaways;
@@ -31,12 +31,13 @@ public class ArticleWithSummary {
     public ArticleWithSummary(Article article,  GeminiResponseDto summary) {
         this.title = article.getTitle();
         this.tags = article.getTags().stream().map(tag -> tag.getName()).toList();
-        this.user = (article.getUser().getName() != null)
-             ? article.getUser().getName() : article.getUser().getId();
+        this.username = article.getUser().getName();
         this.userId = article.getUser().getId();
         this.theme = summary.getTheme();
         this.keyTakeaways = summary.getKeyTakeaways();
         this.targetAudience = summary.getTargetAudience();
         this.url = article.getUrl();
+
+        
     }
 }

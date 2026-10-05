@@ -9,6 +9,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import com.portfolio.qiita_summary_notifier.infrastructure.discord.dto.DiscordWebhookRequestDto;
+import com.portfolio.qiita_summary_notifier.service.ArticleWithSummary;
 import com.portfolio.qiita_summary_notifier.service.NotificationSender;
 
 @Component
@@ -17,7 +18,6 @@ public class DiscordWebhookClient implements NotificationSender {
     private final RestClient restClient;
 
     public DiscordWebhookClient() {
-        
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
@@ -30,8 +30,13 @@ public class DiscordWebhookClient implements NotificationSender {
     }
     
     @Override
-    public void notifyNewArticles(String webhookUrl, String content) {
-        DiscordWebhookRequestDto request = new DiscordWebhookRequestDto(content);
+    public void notifyNewArticles(String webhookUrl, ArticleWithSummary unformattedData) {
+        
+        /**memo: 送信の一連の流れ
+         * まずDtoを使って受け取った生のコンテンツを整形する
+         * それをRestClientのbodyに渡して送信する
+         */
+        String request = "作成中";    
 
         try {
             restClient.post()
@@ -44,5 +49,11 @@ public class DiscordWebhookClient implements NotificationSender {
         } catch (RestClientException e) {
             System.out.println("送信失敗: " + e.getMessage());
         }
+    }
+
+    private DiscordWebhookRequestDto createContent(ArticleWithSummary unformattedData) {
+        /**memo: Dtoを使って記事データと要約情報を組み立てる
+         * 最終的にDtoを返して、それをRestClientのbodyに渡せばいいはず
+         */
     }
 }
