@@ -9,7 +9,6 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.gaos.models.interactions.Content;
 import com.google.genai.gaos.models.interactions.CreateModelInteraction;
@@ -29,13 +28,12 @@ import com.portfolio.qiita_summary_notifier.infrastructure.gemini.dto.GeminiResp
 import com.portfolio.qiita_summary_notifier.service.Article;
 import com.portfolio.qiita_summary_notifier.service.Summarizer;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j 
 @Component
-@RequiredArgsConstructor 
 public class GeminiApiClient implements Summarizer{
     
     private final Client client;
@@ -82,20 +80,16 @@ public class GeminiApiClient implements Summarizer{
     @Override
     public GeminiResponseDto fetchSummaryOfArticle(Article article) {
 
-
         // スキーマの定義からプロンプトまで作成
         CreateModelInteraction params = createPrompt(article.getTitle(), article.getBody());
-
         // ここでリクエストを送って戻ってきたものをinteraction変数に格納
         Interaction interaction = 
             client.interactions.create(CreateInteractionRequestBody.of(params)).interaction().get();
 
         log.debug("interactionの中身: {}", interaction);
         
-        // return interaction.outputText().orElse("geminiエラー");
-
+        // 要約を取り出す処理
         StringBuilder output = new StringBuilder();
-
         for (Step step : interaction.steps().orElse(List.of())) {
             if (step instanceof ModelOutputStep modelOutputStep) {
                 for (Content content : modelOutputStep.content().orElse(List.of())) {

@@ -95,15 +95,15 @@ public class QiitaNotificationService {
          * pythonのzipして回すイメージ
          * IntStreamというクラスをAPIを使うか、googleのguavaというライブラリを使えばいいっぽい？
          */
-        List<ArticleWithSummary> articleWithSummaries = latestArticles.stream()
-                .map(article -> summarizer.fetchSummaryOfArticle(article))
-                .map(article -> new ArticleWithSummary(article, ))
-                .
+        // List<ArticleWithSummary> articleWithSummaries = latestArticles.stream()
+        //         .map(article -> summarizer.fetchSummaryOfArticle(article))
+        //         .map(article -> new ArticleWithSummary(article, ))
+        //         .
 
-        // Discordへ通知
-        notificationSender.notifyNewArticles(
-            setting.getWebhookUrl(), notificationContents
-        );
+        // // Discordへ通知
+        // notificationSender.notifyNewArticles(
+        //     setting.getWebhookUrl(), notificationContents
+        // );
 
         // 通知履歴をDBへ保存
         for (Article sentArticle : latestArticles) {

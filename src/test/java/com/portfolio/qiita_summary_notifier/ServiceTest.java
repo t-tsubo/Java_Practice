@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.qiita_summary_notifier.entity.NotificationSetting;
+import com.portfolio.qiita_summary_notifier.infrastructure.discord.DiscordWebhookClient;
 import com.portfolio.qiita_summary_notifier.infrastructure.gemini.dto.GeminiResponseDto;
 import com.portfolio.qiita_summary_notifier.infrastructure.qiita.QiitaApiClient;
 import com.portfolio.qiita_summary_notifier.service.Article;
@@ -32,6 +33,9 @@ public class ServiceTest {
 
     @Autowired 
     QiitaNotificationService qiitaNotificationService;
+
+    @Autowired 
+    DiscordWebhookClient discordWebhookClient;
 
     @Test 
     void singleSettingNotificationTest() {
@@ -68,11 +72,17 @@ public class ServiceTest {
             }
 
             articleWithSummarys.forEach(aws -> System.out.println(aws));
+
+            discordWebhookClient.notifyNewArticles(discordWebhookToken, articleWithSummarys);
+
         } catch (Exception e) {
 
         }
-        
+    }
 
+    @Test 
+    void DiscordのDtoとembedの確認() {
+        
     }
 
 
