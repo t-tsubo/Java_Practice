@@ -79,23 +79,26 @@ public class QiitaNotificationService {
                 .toList();
 
         // 新しい記事が見つからなかったら見つからなかったことを伝えてメソッドを終える
-        if (latestArticles.isEmpty()) {
-            notificationSender.notifyNewArticles(setting.getWebhookUrl(), "新規記事がありませんでした");
-            return;
-        }
+        // 作り直しが必要
+        // if (latestArticles.isEmpty()) {
+        //     notificationSender.notifyNewArticles(setting.getWebhookUrl(), "新規記事がありませんでした");
+        //     return;
+        // }
 
         /**メモ: geminiの構造化出力実装のタイミングで更新が必要
          * geminiAPIの取得する内容によって変わる
          * streamで実装したい
+         * 
+         * 更新中
+         * latestarticlesとfetchSummaryOfArticleから作ったDtoリストを使って
+         * ArticleWithSumarryのリストを作る必要がある
+         * pythonのzipして回すイメージ
+         * IntStreamというクラスをAPIを使うか、googleのguavaというライブラリを使えばいいっぽい？
          */
-        String notificationContents = "";
-        for (Article article : latestArticles) {
-            String summary = summarizer.fetchSummaryOfArticle(article);
-            NotificationContent content = 
-                new NotificationContent(article.getTitle(), article.getUrl(), summary);
-
-            notificationContents += content;
-        }
+        List<ArticleWithSummary> articleWithSummaries = latestArticles.stream()
+                .map(article -> summarizer.fetchSummaryOfArticle(article))
+                .map(article -> new ArticleWithSummary(article, ))
+                .
 
         // Discordへ通知
         notificationSender.notifyNewArticles(
