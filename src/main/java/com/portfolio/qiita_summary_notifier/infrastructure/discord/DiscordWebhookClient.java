@@ -13,6 +13,9 @@ import com.portfolio.qiita_summary_notifier.infrastructure.discord.dto.DiscordWe
 import com.portfolio.qiita_summary_notifier.service.ArticleWithSummary;
 import com.portfolio.qiita_summary_notifier.service.NotificationSender;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j 
 @Component
 public class DiscordWebhookClient implements NotificationSender {
     
@@ -38,7 +41,7 @@ public class DiscordWebhookClient implements NotificationSender {
          * それをRestClientのbodyに渡して送信する
          */
         DiscordWebhookRequestDto contents = createEmbed(unformattedDataList);
-
+        log.info("送信リクエストデータ: {}", contents);
         try {
             restClient.post()
                     .uri(webhookUrl)
@@ -46,9 +49,9 @@ public class DiscordWebhookClient implements NotificationSender {
                     .retrieve()
                     // 戻ってくる要素がないときにこのメソッドが必要
                     .toBodilessEntity();
-
+        
         } catch (RestClientException e) {
-            System.out.println("送信失敗: " + e.getMessage());
+            log.error("Discordへの送信時に発生: {}", e);
         }
     }
 

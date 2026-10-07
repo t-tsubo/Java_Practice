@@ -8,7 +8,10 @@ public interface NotificationLogMapper {
     // 通知した結果を登録するメソッド
     // インターフェースのpublicはいらないみたい？
     // 暗黙的にpublicはついている 暗黙的でも書いた方がいいものもあるので違いがわからない
-    void insertLog(Integer settingId, String articleId);
+    void insertLog(
+        @Param("settingId") Integer settingId, 
+        @Param("articleId") String articleId
+    );
 
     // 通知済みかを確認するためのメソッド
     boolean existsBySettingIdAndArticleId(

@@ -37,7 +37,5 @@ public class ArticleWithSummary {
         this.keyTakeaways = summary.getKeyTakeaways();
         this.targetAudience = summary.getTargetAudience();
         this.url = article.getUrl();
-
-        
     }
 }

@@ -131,12 +131,12 @@ public class GeminiApiClient implements Summarizer{
         Map<String, Object> propertiesProp = new HashMap<>();
         propertiesProp.put("theme", themeProp);
         propertiesProp.put("key_takeaways", keyTakeawaysProp);
-        propertiesProp.put("target_audienceProp", targetAudienceProp);
+        propertiesProp.put("target_audience", targetAudienceProp);
         // 最終的にgeminiへ渡す全体の設計図
         Map<String, Object> summaryJsonSchema = new HashMap<>();
         summaryJsonSchema.put("type", "object");
         summaryJsonSchema.put("properties", propertiesProp);
-        summaryJsonSchema.put("required", Arrays.asList("theme", "key_takeaways", "target_audienceProp"));
+        summaryJsonSchema.put("required", Arrays.asList("theme", "key_takeaways", "target_audience"));
 
         // ここにプロンプトとtitle, bodyを与えて要約してもらう
         String prompt = """
