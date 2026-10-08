@@ -1,4 +1,4 @@
-package com.portfolio.qiita_summary_notifier;
+package com.portfolio.qiita_summary_notifier.old_test;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

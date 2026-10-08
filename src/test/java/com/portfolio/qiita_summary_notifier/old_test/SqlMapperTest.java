@@ -1,4 +1,4 @@
-package com.portfolio.qiita_summary_notifier;
+package com.portfolio.qiita_summary_notifier.old_test;
 
 import java.util.List;
 
