@@ -10,7 +10,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -35,13 +39,13 @@ public class QiitaApiClient implements ArticleProvider{
 
         /**memo: HTTPリクエスト
          * RestClientを作る前にリクエストのタイムアウト設定をしている
-         * 接続までに10s, 返事を待つのに60s
+         * 接続までに5s, 返事を待つのに10s
          */
         HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
+                .connectTimeout(Duration.ofSeconds(5))
                 .build();
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
-        factory.setReadTimeout(Duration.ofSeconds(60));
+        factory.setReadTimeout(Duration.ofSeconds(10));
 
         /**memo: RestClientの使い方    
          * インスタンス生成時にRestClientを用意する
@@ -54,6 +58,21 @@ public class QiitaApiClient implements ArticleProvider{
                 .build();
     }
 
+    /**memo: 処理のリトライ
+     * retryableアノテーションを使ってリトライ処理が可能になる
+     * アノテーションはメインクラス、または設定クラスに@Retryableが必要？
+     * 調べた情報やAIが出した情報はバージョンが違うせいか結構違う
+     * それぞれ引数で拾う/拾わない例外を設定したり、リトライ回数やディレイ、指数バックオフの設定などもできる
+     * IDEに従って書いただけなので詳細がわかってない
+     */
+    @Retryable (
+        includes = { ResourceAccessException.class, HttpServerErrorException.class},
+        excludes = { HttpClientErrorException.class},
+        maxRetries = 3,
+        delay = 2_000,
+        multiplier = 2.0,
+        maxDelay = 10_000
+    )
     @Override 
     public List<Article> fetchArticles(String includeTags, String excludeTags) {
         

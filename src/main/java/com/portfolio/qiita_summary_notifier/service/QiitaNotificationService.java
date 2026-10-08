@@ -66,6 +66,7 @@ public class QiitaNotificationService {
         // 新しい記事が見つからなかったら見つからなかったことを伝えてメソッドを終える
         // 例外処理の追加のタイミングで修正
         // 見つからなかったことを伝える専用のembedを作って配信が一番まるそう
+        // discordのエラー以外必ず通知したいからフラグ管理にしてgeminiへの問い合わせをif文で囲った方がよさそう？
         // if (latestArticles.isEmpty()) {
         //     notificationSender.notifyNewArticles(setting.getWebhookUrl(), "新規記事がありませんでした");
         //     return;
