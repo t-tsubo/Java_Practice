@@ -9,12 +9,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.retry.RetryTemplate;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -29,13 +26,14 @@ import lombok.extern.slf4j.Slf4j;
 @Component 
 public class QiitaApiClient implements ArticleProvider{
 
+    private final RetryTemplate retryTemplate;
     private final RestClient restClient;
     /**memo: 環境変数の取得方法
      * @Value("プロパティ名")でapplication.propertiesの"プロパティ名"の値を取得できる
      * コマンドライン引数やOSの環境変数、独自に作ったファイルなど基本的に何でも値を持ってこれる？
      * 後者は@PropertySourceなどを使うらしい 
      */
-    public QiitaApiClient(@Value("${qiita.api.token}") String apiToken) {
+    public QiitaApiClient(@Value("${qiita.api.token}") String apiToken, RetryTemplate retryTemplate) {
 
         /**memo: HTTPリクエスト
          * RestClientを作る前にリクエストのタイムアウト設定をしている
@@ -56,6 +54,8 @@ public class QiitaApiClient implements ArticleProvider{
                 .requestFactory(factory)
                 .defaultHeader("Authorization", "Bearer " + apiToken)  // 生成されるヘッダー：Authorization Bearer トークン 
                 .build();
+
+        this.retryTemplate = retryTemplate;
     }
 
     /**memo: 処理のリトライ
@@ -65,18 +65,11 @@ public class QiitaApiClient implements ArticleProvider{
      * それぞれ引数で拾う/拾わない例外を設定したり、リトライ回数やディレイ、指数バックオフの設定などもできる
      * IDEに従って書いただけなので詳細がわかってない
      */
-    @Retryable (
-        includes = { ResourceAccessException.class, HttpServerErrorException.class},
-        excludes = { HttpClientErrorException.class},
-        maxRetries = 3,
-        delay = 2_000,
-        multiplier = 2.0,
-        maxDelay = 10_000
-    )
     @Override 
     public List<Article> fetchArticles(String includeTags, String excludeTags) {
         
         URI uri = createUri(includeTags, excludeTags);      
+        List<Article> articleList = new ArrayList<>();
         try {
             /**memo: APIから記事を取得
              * どのリクエストを送るかと、どうやって受け取るかを決めている
@@ -86,27 +79,27 @@ public class QiitaApiClient implements ArticleProvider{
              * body:    返ってきたjsonをDTOクラスの配列オブジェクトにする
              *          body()は双方向(Java<=>json)に変換可能
              */
-            QiitaArticleDto[] dtos = restClient.get()
+            retryTemplate.invoke(() -> {
+                QiitaArticleDto[] dtos = restClient.get()
                     .uri(uri)
                     .retrieve()
                     .body(QiitaArticleDto[].class);
 
-            List<Article> articleList = new ArrayList<>();
-            // 記事が取得できていればコンバート
-            if (dtos != null) {
-                for (QiitaArticleDto dto : dtos) {
-                    articleList.add(convertToArticle(dto));
+                // 記事が取得できていればコンバート
+                if (dtos != null) {
+                    for (QiitaArticleDto dto : dtos) {
+                        articleList.add(convertToArticle(dto));
+                    }
                 }
-            }
-
-            log.info("取得した記事数: {}件", articleList.size());
+                log.info("取得した記事数: {}件", articleList.size());   
+            });
 
             return articleList;
-
+            
         } catch(RestClientException e) {
             log.error("QiitaAPIエラー", e);
             return new ArrayList<>();
-        }
+        } 
     }
     // Queryを作成するメソッド
     private URI createUri(String includeTags, String excludeTags) {
