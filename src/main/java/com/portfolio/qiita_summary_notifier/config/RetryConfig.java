@@ -1,4 +1,4 @@
-package com.portfolio.config;
+package com.portfolio.qiita_summary_notifier.config;
 
 import java.time.Duration;
 

@@ -1,16 +1,13 @@
 package com.portfolio.qiita_summary_notifier.infrastructure.qiita;
 
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.retry.RetryTemplate;
-import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
@@ -28,33 +25,9 @@ public class QiitaApiClient implements ArticleProvider{
 
     private final RetryTemplate retryTemplate;
     private final RestClient restClient;
-    /**memo: 環境変数の取得方法
-     * @Value("プロパティ名")でapplication.propertiesの"プロパティ名"の値を取得できる
-     * コマンドライン引数やOSの環境変数、独自に作ったファイルなど基本的に何でも値を持ってこれる？
-     * 後者は@PropertySourceなどを使うらしい 
-     */
-    public QiitaApiClient(@Value("${qiita.api.token}") String apiToken, RetryTemplate retryTemplate) {
 
-        /**memo: HTTPリクエスト
-         * RestClientを作る前にリクエストのタイムアウト設定をしている
-         * 接続までに5s, 返事を待つのに10s
-         */
-        HttpClient httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(5))
-                .build();
-        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
-        factory.setReadTimeout(Duration.ofSeconds(10));
-
-        /**memo: RestClientの使い方    
-         * インスタンス生成時にRestClientを用意する
-         * builder()で独自の設定を追加する 
-         * このオブジェクトを使ってリクエストを送るとき、必ずヘッダーに引数の文字列を追加して送る
-        */
-        this.restClient = RestClient.builder()
-                .requestFactory(factory)
-                .defaultHeader("Authorization", "Bearer " + apiToken)  // 生成されるヘッダー：Authorization Bearer トークン 
-                .build();
-
+    public QiitaApiClient(@Qualifier("qiitaRestClient") RestClient restClient, RetryTemplate retryTemplate) {
+        this.restClient = restClient;
         this.retryTemplate = retryTemplate;
     }
 
